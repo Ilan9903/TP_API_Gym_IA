@@ -2,22 +2,21 @@
 
 Une API de Machine Learning développée avec FastAPI qui prédit le niveau d'expérience d'un membre de salle de sport (de 1 à 3) en fonction de ses métriques physiques et de sa routine d'entraînement.
 
-Ce projet implémente un modèle `RandomForestClassifier` optimisé (via `GridSearchCV`) et traqué avec `MLflow`, le tout servi par une architecture orientée service.
+Ce projet implémente un modèle `RandomForestClassifier` optimisé (via `GridSearchCV`) et traqué avec `MLflow`, le tout servi par une architecture orientée service et conteneurisé avec Docker.
 
 ---
 
 ## ✨ Fonctionnalités clés
 
-- **Prédiction ML** : Modèle Random Forest entraîné sur les données physiologiques et d'entraînement.
-- **Architecture Propre** : Séparation stricte entre les contrôleurs (routes HTTP) et la logique métier (services).
-- **Validation des données** : Utilisation de Pydantic pour sécuriser et typer les requêtes entrantes.
-- **Documentation Interactive** : Interface Swagger (OpenAPI) générée automatiquement.
+* **Prédiction ML** : Modèle Random Forest entraîné sur les données physiologiques et d'entraînement.
+* **Indicateurs de confiance** : L'API renvoie désormais la probabilité (certitude) de la prédiction ainsi que la précision (*accuracy*) globale du modèle.
+* **Architecture Propre** : Séparation stricte entre les contrôleurs (routes HTTP) et la logique métier (services).
+* **Validation des données** : Utilisation de Pydantic pour sécuriser et typer les requêtes entrantes.
+* **Conteneurisation Docker** : Environnement isolé garantissant un fonctionnement identique sur n'importe quelle machine ou serveur Cloud (ex : Render).
 
 ---
 
 ## 🏗️ Architecture du Projet
-
-Le dépôt suit une structure modulaire pour faciliter la maintenance et l'évolution du code :
 
 ```text
 gym-api/
@@ -29,71 +28,96 @@ gym-api/
 ├── data/
 │   └── gym_members_exercise_tracking.csv
 ├── models/
-│   ├── model.pkl       # Modèle ML sérialisé
-│   ├── encoder.pkl     # Encodeur pour le model
+│   ├── model.pkl       # Modèle ML sérialisé (Random Forest)
+│   └── encoder.pkl     # Encodeur pour la variable cible (Experience_Level)
 ├── notebook/
 │   └── train.ipynb     # Notebook Jupyter (EDA, Entraînement, MLflow)
+├── .dockerignore       # Fichiers ignorés lors de la construction Docker
+├── Dockerfile          # Recette pour construire le conteneur de l'API
 ├── requirements.txt
-├── Dockerfile
 └── README.md
 ```
 
 ---
 
-## 🚀 Installation et Lancement
+## 🐳 Lancement Rapide (via Docker) — Recommandé
+
+La façon la plus simple et la plus fiable de lancer l'API en évitant les problèmes de dépendances Python locales.
+
+### Construire l'image Docker
+
+```bash
+docker build -t gym-api .
+```
+
+### Lancer le conteneur
+
+```bash
+docker run -p 8000:8000 gym-api
+```
+
+L'API est maintenant accessible à l'adresse :
+
+```text
+http://localhost:8000/docs
+```
+
+---
+
+## 💻 Installation et Lancement (Local / Développement)
+
+Si vous souhaitez modifier le code ou réentraîner le modèle localement.
 
 ### 1. Prérequis
 
-- Python 3.10 ou supérieur
-- Git
+* Python 3.11 ou supérieur
+* Git
 
-### 2. Cloner le dépôt
+### 2. Cloner le dépôt et préparer l'environnement
 
 ```bash
 git clone https://github.com/VOTRE_USERNAME/gym-api.git
 cd gym-api
-```
 
-### 3. Créer l'environnement virtuel et installer les dépendances
-
-```bash
-python3 -m venv venv
-
-# Linux / macOS
-source venv/bin/activate
+# Créer et activer l'environnement virtuel
+python -m venv venv
 
 # Windows
-venv\Scripts\activate
+.\venv\Scripts\activate
 
+# Mac / Linux
+source venv/bin/activate
+
+# Installer les dépendances
+pip install matplotlib --prefer-binary
 pip install -r requirements.txt
 ```
 
-### 4. Générer les modèles d'Intelligence Artificielle
+### 3. Générer les modèles d'Intelligence Artificielle
 
-Avant de lancer l'API, il faut entraîner le modèle et générer les fichiers `.pkl`.
+Avant de lancer l'API pour la première fois, il faut entraîner le modèle.
 
 1. Ouvrez le fichier `notebook/train.ipynb`.
 2. Exécutez toutes les cellules pour :
-   - réaliser l'analyse exploratoire des données (EDA),
-   - entraîner le modèle Random Forest,
-   - effectuer le suivi des expérimentations avec MLflow,
-   - sauvegarder les artefacts dans le dossier `models/`.
 
-### 5. Lancer le serveur local
+   * réaliser l'analyse exploratoire des données (EDA),
+   * entraîner le modèle Random Forest,
+   * suivre les expérimentations avec MLflow,
+   * générer les fichiers `model.pkl` et `encoder.pkl` dans le dossier `models/`.
+
+### 4. Lancer le serveur local
 
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
 
-Le flag `--reload` permet de recharger automatiquement le serveur à chaque modification du code.
-
 ---
 
 ## 🧪 Utilisation de l'API
 
-Une fois le serveur lancé, accédez à la documentation interactive Swagger UI via votre navigateur :
+Accédez à la documentation interactive Swagger UI via votre navigateur pour tester facilement les requêtes :
 
-👉 http://localhost:8000/docs
+👉 `http://localhost:8000/docs`
 
 ---
 
@@ -136,31 +160,31 @@ curl -X 'POST' \
 
 ---
 
-## 📤 Exemple de réponse
+## 📤 Exemple de réponse JSON
 
 ```json
 {
-  "experience_level": 3,
-  "message": "Le niveau d'expérience estimé est de niveau 3",
-  "confidence": 0.77,
+  "experience_level": 2,
+  "message": "Le niveau d'expérience estimé est de niveau 2",
+  "confidence": 0.85,
   "accuracy": 0.91
 }
 ```
 
 ---
 
-## 🧠 Technologies utilisées
+## 🛠️ Technologies utilisées
 
-- FastAPI
-- Scikit-learn
-- RandomForestClassifier
-- GridSearchCV
-- MLflow
-- MatPlotLib
-- Pandas
-- NumPy
-- Pydantic
-- Uvicorn
+* FastAPI
+* Scikit-learn
+* RandomForestClassifier
+* GridSearchCV
+* MLflow
+* Pandas
+* NumPy
+* Pydantic
+* Uvicorn
+* Docker
 
 ---
 
