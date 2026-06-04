@@ -30,12 +30,11 @@ gym-api/
 │   └── gym_members_exercise_tracking.csv
 ├── models/
 │   ├── model.pkl       # Modèle ML sérialisé
-│   ├── le_gender.pkl   # Encodeur pour le genre
-│   ├── le_workout.pkl  # Encodeur pour le type de sport
-│   └── scaler.pkl      # Standardisation des données
+│   ├── encoder.pkl     # Encodeur pour le model
 ├── notebook/
 │   └── train.ipynb     # Notebook Jupyter (EDA, Entraînement, MLflow)
 ├── requirements.txt
+├── Dockerfile
 └── README.md
 ```
 
@@ -141,8 +140,10 @@ curl -X 'POST' \
 
 ```json
 {
-  "experience_level": 2,
-  "message": "Le niveau d'expérience estimé est de niveau 2"
+  "experience_level": 3,
+  "message": "Le niveau d'expérience estimé est de niveau 3",
+  "confidence": 0.77,
+  "accuracy": 0.91
 }
 ```
 
@@ -155,6 +156,7 @@ curl -X 'POST' \
 - RandomForestClassifier
 - GridSearchCV
 - MLflow
+- MatPlotLib
 - Pandas
 - NumPy
 - Pydantic
